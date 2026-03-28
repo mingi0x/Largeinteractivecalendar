@@ -40,8 +40,8 @@ export default function App() {
   }
 
   return (
-    <div className="size-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-      <div className="w-full h-full max-w-7xl flex items-center justify-center">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+      <div className="w-[95vw] h-[92vh]">
         <LargeCalendar onDateClick={handleDateClick} onMonthClick={handleMonthClick} />
       </div>
     </div>

@@ -53,9 +53,9 @@ export function LargeCalendar({ onDateClick, onMonthClick }: LargeCalendarProps)
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
   return (
-    <div className="w-full h-full flex flex-col bg-white rounded-2xl shadow-xl p-8">
+    <div className="w-full h-full flex flex-col bg-white rounded-2xl shadow-xl p-6">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <Button
           onClick={prevMonth}
           variant="outline"
@@ -64,14 +64,14 @@ export function LargeCalendar({ onDateClick, onMonthClick }: LargeCalendarProps)
         >
           <ChevronLeft className="h-6 w-6" />
         </Button>
-        
+
         <button
           onClick={() => onMonthClick(year, month + 1)}
           className="text-4xl font-bold transition-all duration-200 ease-in-out hover:scale-110 cursor-pointer"
         >
           {year}년 {month + 1}월
         </button>
-        
+
         <Button
           onClick={nextMonth}
           variant="outline"
@@ -83,11 +83,11 @@ export function LargeCalendar({ onDateClick, onMonthClick }: LargeCalendarProps)
       </div>
 
       {/* 요일 헤더 */}
-      <div className="grid grid-cols-7 gap-3 mb-3">
+      <div className="grid grid-cols-7 gap-3 mb-2">
         {weekDays.map((day, index) => (
           <div
             key={day}
-            className={`text-center py-3 font-semibold text-lg ${
+            className={`text-center py-2 font-semibold text-lg ${
               index === 0 ? 'text-red-600' : index === 6 ? 'text-blue-600' : ''
             }`}
           >
