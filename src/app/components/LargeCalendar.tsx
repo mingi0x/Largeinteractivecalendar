@@ -4,9 +4,10 @@ import { Button } from './ui/button';
 
 interface LargeCalendarProps {
   onDateClick: (date: Date) => void;
+  onMonthClick: (year: number, month: number) => void;
 }
 
-export function LargeCalendar({ onDateClick }: LargeCalendarProps) {
+export function LargeCalendar({ onDateClick, onMonthClick }: LargeCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const year = currentDate.getFullYear();
@@ -52,9 +53,9 @@ export function LargeCalendar({ onDateClick }: LargeCalendarProps) {
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
   return (
-    <div className="w-full aspect-[4/3] flex flex-col bg-white rounded-2xl shadow-xl p-6">
+    <div className="w-full h-full flex flex-col bg-white rounded-2xl shadow-xl p-8">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <Button
           onClick={prevMonth}
           variant="outline"
@@ -63,11 +64,14 @@ export function LargeCalendar({ onDateClick }: LargeCalendarProps) {
         >
           <ChevronLeft className="h-6 w-6" />
         </Button>
-
-        <h2 className="text-5xl font-bold">
+        
+        <button
+          onClick={() => onMonthClick(year, month + 1)}
+          className="text-4xl font-bold transition-all duration-200 ease-in-out hover:scale-110 cursor-pointer"
+        >
           {year}년 {month + 1}월
-        </h2>
-
+        </button>
+        
         <Button
           onClick={nextMonth}
           variant="outline"
@@ -79,11 +83,11 @@ export function LargeCalendar({ onDateClick }: LargeCalendarProps) {
       </div>
 
       {/* 요일 헤더 */}
-      <div className="grid grid-cols-7 gap-2 mb-2">
+      <div className="grid grid-cols-7 gap-3 mb-3">
         {weekDays.map((day, index) => (
           <div
             key={day}
-            className={`text-center py-2 font-semibold text-xl ${
+            className={`text-center py-3 font-semibold text-lg ${
               index === 0 ? 'text-red-600' : index === 6 ? 'text-blue-600' : ''
             }`}
           >
@@ -93,7 +97,7 @@ export function LargeCalendar({ onDateClick }: LargeCalendarProps) {
       </div>
 
       {/* 날짜 그리드 */}
-      <div className="grid grid-cols-7 gap-2 flex-1">
+      <div className="grid grid-cols-7 gap-3 flex-1">
         {days.map((date, index) => {
           const dayOfWeek = index % 7;
           const isSunday = dayOfWeek === 0;
@@ -106,7 +110,7 @@ export function LargeCalendar({ onDateClick }: LargeCalendarProps) {
               key={date.toISOString()}
               onClick={() => onDateClick(date)}
               className={`
-                aspect-square flex items-center justify-center rounded-xl text-2xl font-medium
+                flex items-center justify-center rounded-xl text-2xl font-medium
                 border-2 border-gray-200
                 transition-all hover:shadow-lg hover:scale-105 hover:border-indigo-400
                 ${!currentMonth ? 'text-gray-300 bg-gray-50' : 'bg-white'}
