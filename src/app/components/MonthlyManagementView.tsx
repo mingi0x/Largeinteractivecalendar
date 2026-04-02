@@ -1,6 +1,7 @@
 import { ArrowLeft, FileText, ClipboardList } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { useState } from 'react';
 
 interface MonthlyManagementViewProps {
   year: number;
@@ -9,6 +10,85 @@ interface MonthlyManagementViewProps {
 }
 
 export function MonthlyManagementView({ year, month, onBack }: MonthlyManagementViewProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const DutySchedulePage = async () => {
+    // 중복 클릭 방지
+    if (isLoading) return;
+
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('https://humble-system-v6ww966q6jr92x9ww-8000.app.github.dev/api/generate-duty', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // 필요한 경우 데이터 전달
+        body: JSON.stringify({
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('근무표 생성에 실패했습니다.');
+      }
+
+      const data = await response.json();
+
+      if (data.status === "success") {
+      // 2. 서버 작업이 성공하면 화면 상태를 변경
+      alert("✅ 근무표가 성공적으로 생성되었습니다!");
+    } else {
+      alert("❌ 생성 실패: " + data.message);
+    }
+      
+    } catch (error) {
+      console.error('API Error:', error);
+      alert('오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const CafeSchedulePage= async () => {
+    // 중복 클릭 방지
+    if (isLoading) return;
+
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('https://humble-system-v6ww966q6jr92x9ww-8000.app.github.dev/api/generate-cafe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // 필요한 경우 데이터 전달
+        body: JSON.stringify({
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('근무표 생성에 실패했습니다.');
+      }
+
+      const data = await response.json();
+
+      if (data.status === "success") {
+      // 2. 서버 작업이 성공하면 화면 상태를 변경
+      alert("✅ 근무표가 성공적으로 생성되었습니다!");
+    } else {
+      alert("❌ 생성 실패: " + data.message);
+    }
+      
+    } catch (error) {
+      console.error('API Error:', error);
+      alert('오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="w-full h-screen flex flex-col bg-gray-50 overflow-hidden">
       {/* 헤더 */}
@@ -51,11 +131,11 @@ export function MonthlyManagementView({ year, month, onBack }: MonthlyManagement
 
         {/* 하단 버튼 */}
         <div className="max-w-7xl w-full mx-auto grid grid-cols-2 gap-6 shrink-0">
-          <Button size="lg" className="w-full h-14 text-base font-semibold">
+          <Button size="lg" onClick={DutySchedulePage} className="w-full h-14 text-base font-semibold">
             <FileText className="h-5 w-5 mr-2" />
             근무표 생성하기
           </Button>
-          <Button size="lg" className="w-full h-14 text-base font-semibold">
+          <Button size="lg" onClick={CafeSchedulePage} className="w-full h-14 text-base font-semibold">
             <FileText className="h-5 w-5 mr-2" />
             근무표 생성하기
           </Button>

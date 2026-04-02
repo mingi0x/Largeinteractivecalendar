@@ -10,7 +10,7 @@ def get_cafe_members(year, month):
     dates = [f"{year}-{month:02d}-{day:02d}" for day in range(1, last_day + 1)]#해당 월의 모든 날짜 생성
 
     for date in dates:#각 날짜에 대해 식당 근무자 선정
-        date_str=date.strftime("%Y-%m-%d")#날짜 문자열로 변환
+        date_str=date
 
         with open("/workspaces/Largeinteractivecalendar/data/all_member_data.json", "r", encoding="utf-8") as f:#전체 근무자 정보 로드
             all_members = json.load(f)
@@ -39,13 +39,14 @@ def get_cafe_members(year, month):
 
         yesterday_worker=[worker["이름"] for worker in selected_worker]#오늘 선정된 근무자를 내일의 어제 근무자로 저장
 
-    file_path=f'/workspaces/Largeinteractivecalendar/data/Cafe_Schedule/{month}월 식당청소.json'#근무 스케줄표 저장 경로 설정
+        with open("/workspaces/Largeinteractivecalendar/data/exclusion_member.json", "w", encoding="utf-8") as f:#열외자 명단 저장(업데이트)
+            json.dump(exclusion_members, f, ensure_ascii=False, indent=4)
+        with open("/workspaces/Largeinteractivecalendar/data/all_member_data.json", "w", encoding="utf-8") as f:#전체 근무자 정보 저장(업데이트)
+            json.dump(all_members, f, ensure_ascii=False, indent=4)
+
+    file_path=f'/workspaces/Largeinteractivecalendar/data/Cafe_Schedule/{year}년 {month}월 식당청소근무표.json'#근무 스케줄표 저장 경로 설정
 
     with open(file_path, "w", encoding="utf-8") as f:#근무 스케줄표 저장
         json.dump(cafe_schedule, f, ensure_ascii=False, indent=4)
-    with open("/workspaces/Largeinteractivecalendar/data/exclusion_member.json", "w", encoding="utf-8") as f:#열외자 명단 저장(업데이트)
-        json.dump(exclusion_members, f, ensure_ascii=False, indent=4)
-    with open("/workspaces/Largeinteractivecalendar/data/all_member_data.json", "w", encoding="utf-8") as f:#전체 근무자 정보 저장(업데이트)
-        json.dump(all_members, f, ensure_ascii=False, indent=4)
 
     
