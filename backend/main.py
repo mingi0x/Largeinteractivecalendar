@@ -5,11 +5,11 @@ from typing import List
 
 from onduty_member import get_onduty_members
 from cafe_member import get_cafe_members
-from CCTV_member import get_cctv_members, cctv_final_members
-from add_exclusion import add_exclusion
-from remove_exclusion import remove_exclusion
+from CCTV_member import get_cctv_members, cctv_final_members, current_state
+from update_exclusion import add_exclusion, remove_exclusion, return_exclusion
 from is_member import is_member_cctv, is_first
-from reset import reset_cafe_score, reset_cctv_score, reset_onduty_score
+from reset import reset_onduty_schedule, reset_cafe_schedule, reset_cctv_schedule
+# from reset import reset_onduty_score, reset_cafe_score, reset_cctv_score
 # from make_exclusion import get_exclusion
 
 current_date={"year": 0, "month": 0, "day": 0}#현재 날짜 정보 초기화
@@ -41,9 +41,9 @@ class ExceptionChange(BaseModel):
 
 # @app.post("/api/reset-scheduler")##############################################killer#########################################################
 # async def reset_scores():
+#     reset_onduty_score()
 #     reset_cafe_score()
 #     reset_cctv_score()
-#     reset_onduty_score()
 #     print("모든 근무표 점수가 초기화되었습니다.")
 #     return {"status": "success", "message": "모든 근무표 점수가 초기화되었습니다."}
 
@@ -69,11 +69,9 @@ async def update_exceptions(data: ExceptionChange):
 
     if data.action == "remove":
         remove_exclusion(year,month,day,data.name)
-        print(f"🔥 삭제 완료된 인원: {data.name}")
         # 여기서 JSON 파일에서 해당 이름을 찾아 삭제하는 로직 수행
     elif data.action == "add":
         add_exclusion(year,month,day,data.name)
-        print(f"✅ 추가된 인원: {data.name}")
         # 여기서 JSON 파일에 해당 이름을 추가하는 로직 수행
         
     return {"status": "success", "processed_name": data.name}
@@ -101,11 +99,13 @@ async def generate_cctv():
         else:
             # 파일이 없으면 생성
             get_cctv_members(year, month, day)
-            cctv_scheduler=cctv_final_members(year, month, day)    
+            cctv_schedule=cctv_final_members(year, month, day) 
+            state=current_state(year, month, day)   
             print(f"새로운 {year}-{month}-{day} 근무표를 생성했습니다.")
             return {
                 "status": "success", 
-                "schedule": cctv_scheduler,
+                "schedule": cctv_schedule,
+                "state": state,
                 "message": "새로운 근무표를 생성했습니다."
             }
     else:
@@ -119,19 +119,41 @@ async def generate_cctv():
     
     return {"status": "success", "message": "Backend logic executed"}
 
-@app.post("/api/generate-duty")
+@app.post("/api/generate-duty")#onduty:당직
 async def generate_duty():
     year = current_date["year"]
     month = current_date["month"]
 
-    get_onduty_members(year, month)
+    onduty_schedule = get_onduty_members(year, month)
+    print(f"📅 [당직 근무표 생성] {year}년 {month}월 당직 근무표가 생성되었습니다.")
 
-    return {"status": "success", "message": "당직 근무표 생성 로직이 실행되었습니다."}
-@app.post("/api/generate-cafe")
+    return {"status": "success", "schedule": onduty_schedule, "message": "당직 근무표 생성 로직이 실행되었습니다."}
+
+@app.post("/api/generate-cafe")#cafe:식당청소
 async def generate_cafe():
     year = current_date["year"]
     month = current_date["month"]
 
-    get_cafe_members(year, month)
+    cafe_schedule = get_cafe_members(year, month)
+    print(f"📅 [식당 청소 근무표 생성] {year}년 {month}월 식당 청소 근무표가 생성되었습니다.")
 
-    return {"status": "success", "message": "식당 청소 근무표 생성 로직이 실행되었습니다."}
+    return {"status": "success", "schedule": cafe_schedule, "message": "식당 청소 근무표 생성 로직이 실행되었습니다."}
+
+    #cctv 근무표 html 아직 안바꿈
+    #열외표 생성시 웹에 추가되게 아직 안바꿈
+
+@app.post("/api/reset-duty")
+def reset_duty():
+    reset_onduty_schedule(current_date["year"], current_date["month"])
+    print(f"📅 [당직 근무표 점수 초기화] {current_date['year']}년 {current_date['month']}월 당직 근무표 점수가 초기화되었습니다.")
+    return {"status": "success", "message": "당직 근무표 점수 초기화 로직이 실행되었습니다."}
+@app.post("/api/reset-cafe")
+def reset_cafe():
+    reset_cafe_schedule(current_date["year"], current_date["month"])
+    print(f"📅 [식당 청소 근무표 점수 초기화] {current_date['year']}년 {current_date['month']}월 식당 청소 근무표 점수가 초기화되었습니다.")
+    return {"status": "success", "message": "식당 청소 근무표 점수 초기화 로직이 실행되었습니다."}
+@app.post("/api/reset-cctv")
+def reset_cctv():
+    reset_cctv_schedule(current_date["year"], current_date["month"], current_date["day"])
+    print(f"📅 [CCTV 근무표 점수 초기화] {current_date['year']}년 {current_date['month']}월 {current_date['day']}일 CCTV 근무표 점수가 초기화되었습니다.")
+    return {"status": "success", "message": "CCTV 근무표 점수 초기화 로직이 실행되었습니다."}
