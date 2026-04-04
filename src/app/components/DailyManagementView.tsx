@@ -21,6 +21,8 @@ interface ExceptionPerson {
 interface DailyManagementViewProps {
   selectedDate: Date;
   onBack: () => void;
+  externalData?: any[];
+  isLoading: boolean;
 }
 
 const notifyPythonAboutChange = async (name: string, action: 'add' | 'remove') => {
@@ -37,7 +39,7 @@ const notifyPythonAboutChange = async (name: string, action: 'add' | 'remove') =
 
 const SAMPLE_PEOPLE = allMemberData.map((person: any) => `${person.이름}`);
 
-export function DailyManagementView({ selectedDate, onBack }: DailyManagementViewProps) {
+export function DailyManagementView({ selectedDate, onBack, externalData, isLoading }: DailyManagementViewProps) {
   const dateKey = selectedDate.toDateString();
 
   const [exceptions, setExceptions] = useState<ExceptionPerson[]>(() => {
@@ -62,6 +64,20 @@ export function DailyManagementView({ selectedDate, onBack }: DailyManagementVie
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    if (externalData && Array.isArray(externalData)) {
+      // 💡 핵심: 기존 데이터(prev)를 무시하고 새 데이터로 '완전히 교체'합니다.
+      const processed = externalData.map((name: string, index: number) => ({
+        id: `${Date.now()}-${index}-${Math.random().toString(36).substring(2, 5)}`,
+        name: name,
+        reason: ''
+      }));
+
+      // [...prev, ...processed] 대신 processed만 넣으세요.
+      setExceptions(processed); 
+    }
+  }, [externalData]);
+
+  useEffect(() => {
     localStorage.setItem(`exceptions_${dateKey}`, JSON.stringify(exceptions));
   }, [exceptions, dateKey]);
 
@@ -70,6 +86,10 @@ export function DailyManagementView({ selectedDate, onBack }: DailyManagementVie
       localStorage.setItem(`duty_daily_${dateKey}`, JSON.stringify(dutyData));
     }
   }, [dutyData, dateKey]);
+
+  useEffect(() => {
+    setExceptions([]); // 날짜 변경 시 초기화
+  }, [dateKey]);
 
   const formatDate = (date: Date) => {
     return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
@@ -284,37 +304,53 @@ export function DailyManagementView({ selectedDate, onBack }: DailyManagementVie
             </div>
           )}
 
+        {/* 📋 리스트 영역 (스켈레톤 vs 실제 데이터) */}
           <div className="space-y-2">
-            {exceptions.map((ex) => (
-              <div
-                key={ex.id}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3 flex-1">
-                  <span className="font-semibold">{ex.name}</span>
-                  <Select value={ex.reason} onValueChange={(val) => handleUpdateException(ex.id, val)}>
-                    <SelectTrigger className="w-32 h-8 text-xs">
-                      <SelectValue placeholder="사유 선택" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="휴가">휴가</SelectItem>
-                      <SelectItem value="외출">외출</SelectItem>
-                      <SelectItem value="외박">외박</SelectItem>
-                      <SelectItem value="배차">배차</SelectItem>
-                      <SelectItem value="출장">출장</SelectItem>
-                    </SelectContent>
-                  </Select>
+            {isLoading ? (
+              /* 🦴 데이터 로딩 중: 스켈레톤 UI 표시 */
+              Array.from({ length: Math.max(exceptions.length, 5) }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-3 bg-gray-100 border border-gray-200 rounded-lg animate-pulse">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="h-5 w-16 bg-gray-300 rounded"></div>
+                    <div className="h-8 w-32 bg-gray-300 rounded"></div>
+                  </div>
+                  <div className="h-7 w-7 bg-gray-300 rounded-full"></div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemoveException(ex.id)}
-                  className="h-7 w-7"
+              ))
+            ) : (
+              /* ✅ 로딩 완료: 실제 데이터 표시 */
+              exceptions.map((ex) => (
+                <div
+                  key={ex.id}
+                  className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between"
                 >
-                  <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                </Button>
-              </div>
-            ))}
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="font-semibold">{ex.name}</span>
+                    <Select value={ex.reason} onValueChange={(val) => handleUpdateException(ex.id, val)}>
+                      <SelectTrigger className="w-32 h-8 text-xs">
+                        <SelectValue placeholder="사유 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="휴가">휴가</SelectItem>
+                        <SelectItem value="외출">외출</SelectItem>
+                        <SelectItem value="외박">외박</SelectItem>
+                        <SelectItem value="배차">배차</SelectItem>
+                        <SelectItem value="출장">출장</SelectItem>
+                        <SelectItem value="자동 추가">자동 추가</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveException(ex.id)}
+                    className="h-7 w-7"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                  </Button>
+                </div>
+              ))
+            )}
           </div>
 
           {dutyGenerated ? (

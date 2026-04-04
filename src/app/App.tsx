@@ -11,6 +11,8 @@ export default function App() {
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
 
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [exclusion, setExclusion] = useState([]);
+  const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
 
   // const resetScheduler = async () => {
   //   try {
@@ -48,6 +50,7 @@ export default function App() {
 
 
   const sendDateToPython = async (year: number, month: number, day?: number) => {
+    setIsLoading(true); // 로딩 시작
     try {
       const response = await fetch('https://humble-system-v6ww966q6jr92x9ww-8000.app.github.dev/api/calendar', {
         method: 'POST',
@@ -60,9 +63,14 @@ export default function App() {
         }),
       });
       const data = await response.json();
+      if (data.status=="success"){
+        setExclusion(data.exclusion);
+      }
       console.log("서버 응답:", data);
     } catch (error) {
       console.error("데이터 전송 실패:", error);
+    }finally {
+      setIsLoading(false); // 로딩 종료
     }
   };
 
@@ -91,7 +99,7 @@ export default function App() {
   };
 
   if (showDailyView && selectedDate) {
-    return <DailyManagementView selectedDate={selectedDate} onBack={handleBackFromDaily} />;
+    return <DailyManagementView selectedDate={selectedDate} onBack={handleBackFromDaily} externalData={exclusion} isLoading={isLoading} />;
   }
 
   if (showMonthlyView) {

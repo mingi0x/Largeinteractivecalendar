@@ -54,10 +54,12 @@ async def receive_calendar_data(data: CalendarData):
     current_date["month"] = data.month
     current_date["day"] = data.day
 
-    # if(data.day!=0):
-    #     get_exclusion(data.year, data.month, data.day)
     print(f"📅 [날짜 수신] 타입: {data.type}")
     print(f"   정보: {data.year}년 {data.month}월 {data.day}일")
+
+    if(data.day!=0):
+        exclusion=return_exclusion(data.year, data.month, data.day)
+        return {"status": "success", "exclusion": exclusion}
     return {"status": "ok", "message": f"{data.year}-{data.month} 데이터 수신 완료"}
 
 # 2. 열외자 명단 수신
@@ -139,7 +141,7 @@ async def generate_cafe():
 
     return {"status": "success", "schedule": cafe_schedule, "message": "식당 청소 근무표 생성 로직이 실행되었습니다."}
 
-    #cctv 근무표 html 아직 안바꿈
+
     #열외표 생성시 웹에 추가되게 아직 안바꿈
 
 @app.post("/api/reset-duty")
